@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: #050508;
+    color: #c8d6f0;
+    font-family: 'DM Sans', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #0d0d14; }
+  ::-webkit-scrollbar-thumb { background: #2a2a45; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a5c; }
+
+  ::selection { background: rgba(0,212,255,0.25); color: #fff; }
+}
+
+@layer components {
+  .glass {
+    background: rgba(26, 26, 40, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(42, 42, 69, 0.8);
+  }
+
+  .glass-elevated {
+    background: rgba(34, 34, 58, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(60, 60, 92, 0.6);
+  }
+
+  .signal-glow {
+    box-shadow: 0 0 0 1px rgba(0,212,255,0.3), 0 0 20px rgba(0,212,255,0.15);
+  }
+
+  .pulse-glow {
+    box-shadow: 0 0 0 1px rgba(124,58,237,0.4), 0 0 24px rgba(124,58,237,0.2);
+  }
+
+  .ember-glow {
+    box-shadow: 0 0 0 1px rgba(249,115,22,0.4), 0 0 20px rgba(249,115,22,0.15);
+  }
+
+  .danger-glow {
+    box-shadow: 0 0 0 1px rgba(239,68,68,0.4), 0 0 16px rgba(239,68,68,0.2);
+  }
+
+  .noise-bg::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.018;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .gradient-border {
+    position: relative;
+    border-radius: 12px;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.4), rgba(124,58,237,0.2), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .risk-critical { @apply bg-red-500/10 border-red-500/30 text-red-400; }
+  .risk-high     { @apply bg-orange-500/10 border-orange-500/30 text-orange-400; }
+  .risk-medium   { @apply bg-yellow-500/10 border-yellow-500/30 text-yellow-400; }
+  .risk-low      { @apply bg-green-500/10 border-green-500/30 text-green-400; }
+
+  .stage-badge {
+    @apply px-2 py-0.5 rounded text-xs font-mono uppercase tracking-wide;
+  }
+  .stage-prospecting  { @apply bg-slate-700/50 text-slate-300; }
+  .stage-qualification { @apply bg-blue-700/30 text-blue-300; }
+  .stage-proposal     { @apply bg-violet-700/30 text-violet-300; }
+  .stage-negotiation  { @apply bg-amber-700/30 text-amber-300; }
+  .stage-closed_won   { @apply bg-green-700/30 text-green-300; }
+  .stage-closed_lost  { @apply bg-red-700/30 text-red-300; }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg bg-signal/10 border border-signal/30 text-signal text-sm font-medium
+           hover:bg-signal/20 hover:border-signal/50 transition-all duration-200 cursor-pointer;
+  }
+  .btn-ghost {
+    @apply px-4 py-2 rounded-lg text-ghost text-sm font-medium
+           hover:bg-surface hover:text-frost transition-all duration-200 cursor-pointer;
+  }
+  .btn-danger {
+    @apply px-4 py-2 rounded-lg bg-danger/10 border border-danger/30 text-danger text-sm font-medium
+           hover:bg-danger/20 transition-all duration-200 cursor-pointer;
+  }
+}
+
+@layer utilities {
+  .text-gradient-signal {
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-ember {
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-slide-up { animation: slideUp 0.35s ease-out; }
+  .animate-fade-in  { animation: fadeIn 0.4s ease-out; }
+}
