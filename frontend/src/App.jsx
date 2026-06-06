@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, MessageSquare, Briefcase,
-  Brain, BarChart3, Settings, Zap, ChevronRight
+  Brain, BarChart3, Settings, Zap, ChevronRight,
+  Sparkles, Shield
 } from 'lucide-react'
 
 import Dashboard from './pages/Dashboard'
@@ -12,17 +13,34 @@ import Deals from './pages/Deals'
 import DealDetail from './pages/DealDetail'
 import Intelligence from './pages/Intelligence'
 import Analytics from './pages/Analytics'
+import Roleplay from './pages/Roleplay'
+import Autopilot from './pages/Autopilot'
 
 const NAV = [
   { to: '/',             icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/chat',         icon: MessageSquare,   label: 'Agent Chat' },
   { to: '/deals',        icon: Briefcase,       label: 'Deals' },
+  { to: '/roleplay',     icon: Sparkles,        label: 'Simulator' },
+  { to: '/autopilot',    icon: Shield,          label: 'Auto-Pilot' },
   { to: '/intelligence', icon: Brain,           label: 'Intelligence' },
   { to: '/analytics',    icon: BarChart3,       label: 'Analytics' },
 ]
 
 export default function App() {
   const location = useLocation()
+  const [recentLog, setRecentLog] = useState(null)
+
+  useEffect(() => {
+    const handler = (e) => {
+      setRecentLog(e.detail)
+      const timer = setTimeout(() => {
+        setRecentLog(null)
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+    window.addEventListener('hindsight-log', handler)
+    return () => window.removeEventListener('hindsight-log', handler)
+  }, [])
 
   return (
     <div className="noise-bg flex h-screen overflow-hidden bg-void">
@@ -77,7 +95,7 @@ export default function App() {
       {/* Main */}
       <main className="relative flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-14 shrink-0 items-center border-b border-border/40 bg-obsidian/60 px-6 backdrop-blur-xl">
+        <header className="flex h-14 shrink-0 items-center border-b border-border/40 bg-obsidian/60 px-6 backdrop-blur-xl justify-between">
           <div className="flex items-center gap-2 text-xs text-ghost">
             <span className="font-medium text-frost">
               {NAV.find(n => n.to === location.pathname)?.label || 'Deal Intelligence Agent'}
@@ -85,7 +103,30 @@ export default function App() {
             <ChevronRight size={12} />
             <span className="font-mono text-signal/70">hindsight://memory</span>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          
+          {/* Ticker */}
+          <div className="flex items-center gap-3">
+            <AnimatePresence mode="wait">
+              {recentLog && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-mono ring-1 transition-all ${
+                    recentLog.type === 'RECALL' ? 'bg-pulse/15 ring-pulse/30 text-pulse' :
+                    recentLog.type === 'RETAIN' ? 'bg-safe/15 ring-safe/30 text-safe' :
+                    recentLog.type === 'PROCESS' ? 'bg-signal/15 ring-signal/30 text-signal' :
+                    'bg-ember/15 ring-ember/30 text-ember'
+                  }`}
+                >
+                  <Brain size={11} className="animate-pulse" />
+                  <span>
+                    <strong>{recentLog.type}:</strong> {recentLog.message}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <span className="flex items-center gap-1.5 rounded-full bg-safe/10 px-3 py-1 text-xs text-safe ring-1 ring-safe/20">
               <span className="h-1.5 w-1.5 rounded-full bg-safe animate-pulse-slow" />
               Memory Active
@@ -110,6 +151,8 @@ export default function App() {
                 <Route path="/chat/:dealId"  element={<Chat />} />
                 <Route path="/deals"         element={<Deals />} />
                 <Route path="/deals/:id"     element={<DealDetail />} />
+                <Route path="/roleplay"      element={<Roleplay />} />
+                <Route path="/autopilot"     element={<Autopilot />} />
                 <Route path="/intelligence"  element={<Intelligence />} />
                 <Route path="/analytics"     element={<Analytics />} />
               </Routes>

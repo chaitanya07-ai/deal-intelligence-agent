@@ -20,6 +20,8 @@ from services.llm_service import LLMService
 from services.email_service import EmailService
 from services.twilio_service import TwilioService
 from services.deal_service import DealService
+from services.roleplay_service import RoleplayService
+from services.autopilot_service import AutopilotService
 
 app = FastAPI(title="Deal Intelligence Agent API", version="1.0.0")
 
@@ -37,6 +39,8 @@ llm_svc = LLMService()
 email_svc = EmailService()
 twilio_svc = TwilioService()
 deal_svc = DealService(memory_svc, llm_svc)
+roleplay_svc = RoleplayService(memory_svc, llm_svc)
+autopilot_svc = AutopilotService(memory_svc, llm_svc)
 
 # ─── Pydantic Models ───────────────────────────────────────────────────────────
 
@@ -79,6 +83,14 @@ class SMSRequest(BaseModel):
 class SeedRequest(BaseModel):
     num_deals: int = 5
     industry: Optional[str] = None
+
+class RoleplayStartRequest(BaseModel):
+    deal_id: str
+    stakeholder_name: str
+
+class RoleplayChatRequest(BaseModel):
+    deal_id: str
+    message: str
 
 # ─── Health Check ──────────────────────────────────────────────────────────────
 
@@ -288,6 +300,45 @@ async def revenue_forecast():
 async def top_objections():
     objections = await memory_svc.get_top_objections()
     return objections
+
+# ─── Roleplay & Autopilot Endpoints ──────────────────────────────────────────
+
+@app.post("/api/roleplay/start")
+async def start_roleplay(req: RoleplayStartRequest):
+    result = await roleplay_svc.start_session(req.deal_id, req.stakeholder_name)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+@app.post("/api/roleplay/chat")
+async def chat_roleplay(req: RoleplayChatRequest):
+    result = await roleplay_svc.chat_turn(req.deal_id, req.message)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/api/roleplay/evaluate/{deal_id}")
+async def evaluate_roleplay(deal_id: str):
+    result = await roleplay_svc.evaluate_session(deal_id)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/api/autopilot/run")
+async def run_autopilot(background_tasks: BackgroundTasks):
+    if autopilot_svc.is_running():
+        return {"message": "Autopilot is already running", "status": "running"}
+    background_tasks.add_task(autopilot_svc.run_autopilot_loop)
+    return {"message": "Autopilot triggered in background", "status": "started"}
+
+@app.get("/api/autopilot/logs")
+async def get_autopilot_logs():
+    return {"logs": autopilot_svc.get_logs(), "running": autopilot_svc.is_running()}
+
+@app.get("/api/autopilot/actions")
+async def get_autopilot_actions():
+    actions = await autopilot_svc.get_all_actions()
+    return {"actions": actions}
 
 # ─── Data Seeding ──────────────────────────────────────────────────────────────
 

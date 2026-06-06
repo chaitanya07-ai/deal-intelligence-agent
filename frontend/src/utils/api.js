@@ -4,6 +4,40 @@ const BASE = import.meta.env.VITE_API_URL || '/api'
 
 const api = axios.create({ baseURL: BASE, timeout: 60000 })
 
+// Request interceptor to broadcast active memory operations
+api.interceptors.request.use(config => {
+  let type = 'QUERY'
+  let message = `API Call to ${config.url}`
+  
+  if (config.url.includes('/chat')) {
+    type = 'RECALL'
+    message = 'Recalled Hindsight semantic memory context'
+  } else if (config.url.includes('/memory') && config.method?.toLowerCase() === 'post') {
+    type = 'RETAIN'
+    message = 'Indexed new memory event in Hindsight'
+  } else if (config.url.includes('/briefing')) {
+    type = 'RECALL'
+    message = 'Compiled account briefing using Hindsight context'
+  } else if (config.url.includes('/risk')) {
+    type = 'QUERY'
+    message = 'Analysing Hindsight historical pattern risks'
+  } else if (config.url.includes('/roleplay/start')) {
+    type = 'RECALL'
+    message = 'Recalled stakeholder profile & concerns'
+  } else if (config.url.includes('/roleplay/evaluate')) {
+    type = 'RETAIN'
+    message = 'Analyzed response & stored score in Hindsight'
+  } else if (config.url.includes('/autopilot/run')) {
+    type = 'PROCESS'
+    message = 'Autopilot pipeline check active'
+  }
+  
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('hindsight-log', { detail: { type, message } }))
+  }
+  return config
+})
+
 api.interceptors.response.use(
   r => r.data,
   e => Promise.reject(e?.response?.data?.detail || e.message || 'Request failed')
@@ -55,3 +89,16 @@ export const fetchTopObjections = () => api.get('/dashboard/objections')
 export const seedDeals = (numDeals = 5, industry = null) =>
   api.post('/seed', { num_deals: numDeals, industry })
 export const fetchSeedStatus = () => api.get('/seed/status')
+
+// ─── Roleplay ─────────────────────────────────────────────────────────────────
+export const startRoleplay = (dealId, stakeholderName) =>
+  api.post('/roleplay/start', { deal_id: dealId, stakeholder_name: stakeholderName })
+export const sendRoleplayChat = (dealId, message) =>
+  api.post('/roleplay/chat', { deal_id: dealId, message })
+export const evaluateRoleplay = (dealId) =>
+  api.post(`/roleplay/evaluate/${dealId}`)
+
+// ─── Autopilot ────────────────────────────────────────────────────────────────
+export const runAutopilot = () => api.post('/autopilot/run')
+export const fetchAutopilotLogs = () => api.get('/autopilot/logs')
+export const fetchAutopilotActions = () => api.get('/autopilot/actions')
