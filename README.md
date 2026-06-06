@@ -4,11 +4,11 @@
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Hindsight](https://img.shields.io/badge/Hindsight-Persistent%20Memory-blueviolet?style=for-the-badge&logo=brain circuit)
+![Hindsight](https://img.shields.io/badge/Hindsight-Persistent%20Memory-blueviolet?style=for-the-badge)
 ![Groq](https://img.shields.io/badge/Groq-Llama%203.3-orange?style=for-the-badge)
 ![Twilio](https://img.shields.io/badge/Twilio-SMS%20%26%20Voice-red?style=for-the-badge&logo=twilio&logoColor=white)
 
-**Sales Intelligence with a persistent, semantic memory layer.**
+**Sales Intelligence with a persistent, semantic memory layer.**  
 *Never forget an objection, competitor mention, or stakeholder context across the entire sales pipeline.*
 
 [Key Features](#-key-features) • [Architecture](#-architecture) • [Quickstart](#-quickstart-docker---2-minutes) • [Setup Guide](#-api-keys-setup) • [Demo Walkthrough](#-demo-walkthrough) • [Judging Criteria](#-judging-notes)
@@ -19,7 +19,7 @@
 
 ## ✨ What It Does
 
-The **Deal Intelligence Agent** equips sales teams with a persistent AI memory layer across every account in their CRM. By implementing a stateful **Retain-Recall Loop** using [Hindsight](https://hindsight.vectorize.io/), the agent grows smarter with every call, email, and chat session.
+The **Deal Intelligence Agent** equips sales teams with a persistent AI memory layer across every account in their CRM. By implementing a stateful **Retain-Recall Loop** using [Hindsight](https://hindsight.vectorize.io/), the agent grows smarter with every call, email, and chat session — and now includes two powerful new modules: a **Sales Simulator** for objection practice and an **Autopilot** for autonomous deal management.
 
 | Feature | Capabilities powered by Hindsight Memory |
 | :--- | :--- |
@@ -31,37 +31,135 @@ The **Deal Intelligence Agent** equips sales teams with a persistent AI memory l
 | 📊 **Risk Heatmap** | A visual command center showing deal-by-deal closure probabilities derived from historical behavior. |
 | 📈 **Revenue Forecasting** | Weighted revenue forecasting driven by stage analysis and probability mapping. |
 | ⚔️ **Competitor Radar** | Tracks win/loss ratios and maps effective counter-strategies against key competitors. |
+| 🎭 **Sales Simulator** | Role-play live objection-handling sessions against AI-powered stakeholder personas grounded in Hindsight deal memory. |
+| 🤖 **Autopilot Agent** | Autonomous background agent that scans the CRM, retrieves unresolved objections from Hindsight, and generates Action Playbooks for every active deal. |
+
+---
+
+## 🆕 New: Sales Simulator
+
+The **Sales Simulator** (`/roleplay`) lets reps practice high-stakes conversations before they happen.
+
+**How it works:**
+
+1. Select any active deal from the dropdown.
+2. Choose a stakeholder persona (e.g. VP of Operations, CTO, Procurement Lead).
+3. The simulator loads that stakeholder's history, objections, competitor preferences, and communication style directly from Hindsight memory.
+4. A live chat session begins where the AI plays the stakeholder — raising real objections from the deal record, negotiating on real pricing constraints, and responding with context from past interactions.
+5. End the session to receive an **AI-generated performance evaluation** with scores on objection handling, discovery quality, and closing technique.
+6. Evaluation results are written back into Hindsight memory so future coaching suggestions improve over time.
+
+**Roleplay API surface (`RoleplayService`):**
+
+| Method | Description |
+| :--- | :--- |
+| `start_session(deal_id, stakeholder_name)` | Initializes the session, loads persona from Hindsight, returns opening greeting. |
+| `chat_turn(deal_id, message)` | Processes a rep message and returns the stakeholder's in-character response. |
+| `evaluate_session(deal_id)` | Ends the session and returns a structured performance scorecard, saved to Hindsight. |
+
+---
+
+## 🆕 New: Autopilot Agent
+
+The **Autopilot Agent** (`/autopilot`) is a fully autonomous AI loop that works through your entire pipeline while you sleep.
+
+**What it does:**
+
+1. **CRM Scan** — Enumerates all active deals in the pipeline.
+2. **Hindsight Recall** — For each deal, retrieves unresolved objections, competitor threats, and stale follow-up reminders via semantic search.
+3. **Cross-Deal Pattern Matching** — Queries Hindsight for similar objections that were successfully handled in other deals and surfaces the winning counter-strategies.
+4. **Action Playbook Generation** — The LLM synthesizes the retrieved context and generates a structured **Action Playbook**: a prioritized list of recommended next steps, suggested email talking points, and risk flags.
+5. **Real-Time Execution Console** — A live log stream shows every step the agent is taking (scan, recall, match, reason, action) as it processes each deal.
+
+**Autopilot API surface (`AutopilotService`):**
+
+| Method | Description |
+| :--- | :--- |
+| `run_autopilot_loop()` | Triggers the full autonomous scan-recall-act pipeline across all active deals. |
+| `get_all_actions()` | Returns all generated Action Playbooks from the most recent run. |
+| `get_logs()` | Streams the timestamped execution log for display in the console UI. |
+| `is_running()` | Returns whether the autopilot loop is currently active. |
+
+**Log levels shown in the Autopilot console:**
+
+`INFO` · `PROCESS` · `RECALL` · `MATCH` · `REASON` · `SUCCESS` · `WARNING`
 
 ---
 
 ## 🏗️ Architecture
 
-The application is architected around the **Retain $\rightarrow$ Recall $\rightarrow$ Act** loop. State is persisted in [Vectorize Hindsight memory](https://vectorize.io/what-is-agent-memory), removing the limitations of stateless chat completions.
+The application is built around the **Retain → Recall → Act** loop. State is persisted in [Vectorize Hindsight memory](https://vectorize.io/what-is-agent-memory), removing the limitations of stateless chat completions.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                 React Frontend (Vite)               │
-│  Dashboard · Chat Canvas · Deal Detail · Analytics   │
-└──────────────────────┬──────────────────────────────┘
-                       │ REST + Server-Sent Events
-┌──────────────────────▼──────────────────────────────┐
-│              FastAPI Backend (Python)                │
-│                                                      │
-│  ┌──────────────┐  ┌─────────────┐  ┌────────────┐  │
-│  │ Memory Svc   │  │  LLM Svc   │  │ Deal Svc   │  │
-│  │ (Hindsight)  │  │  (Groq)    │  │ (Business) │  │
-│  └──────┬───────┘  └─────┬──────┘  └─────┬──────┘  │
-│         │                │               │          │
-│  ┌──────▼──────┐  ┌──────▼──────┐  ┌─────▼──────┐  │
-│  │  Email Svc  │  │ Twilio Svc  │  │ Analytics  │  │
-│  │  (SMTP)     │  │ (SMS+Voice) │  │ (Forecast) │  │
-│  └─────────────┘  └─────────────┘  └────────────┘  │
-└──────────────────────┬──────────────────────────────┘
-                       │ 
- ┌─────────────────────▼─────────────────────────────┐
- │            Hindsight Memory Layer                 │
- │   Persistent semantic memory · Retain-Recall Loop │
- └───────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    React Frontend (Vite)                      │
+│  Dashboard · Chat · Deals · Simulator · Autopilot ·          │
+│  Intelligence · Analytics                                     │
+└───────────────────────────┬──────────────────────────────────┘
+                            │ REST + Server-Sent Events + WS
+┌───────────────────────────▼──────────────────────────────────┐
+│                  FastAPI Backend (Python)                     │
+│                                                              │
+│  ┌──────────────┐  ┌─────────────┐  ┌────────────────────┐  │
+│  │ Memory Svc   │  │  LLM Svc   │  │    Deal Service    │  │
+│  │ (Hindsight)  │  │  (Groq)    │  │  CRUD + AI Analysis│  │
+│  └──────┬───────┘  └──────┬──────┘  └────────────────────┘  │
+│         │                 │                                  │
+│  ┌──────▼──────┐  ┌───────▼──────┐  ┌────────────────────┐  │
+│  │  Email Svc  │  │  Twilio Svc  │  │  Analytics/Forecast│  │
+│  │  (SMTP)     │  │  (SMS+Voice) │  │                    │  │
+│  └─────────────┘  └──────────────┘  └────────────────────┘  │
+│                                                              │
+│  ┌───────────────────────┐  ┌────────────────────────────┐  │
+│  │   Roleplay Service    │  │    Autopilot Service       │  │
+│  │  start_session        │  │  run_autopilot_loop        │  │
+│  │  chat_turn            │  │  get_all_actions           │  │
+│  │  evaluate_session     │  │  get_logs / is_running     │  │
+│  └───────────────────────┘  └────────────────────────────┘  │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+┌───────────────────────────▼──────────────────────────────────┐
+│                  Hindsight Memory Layer                       │
+│  Persistent semantic memory · Retain-Recall Loop             │
+│  Objections · Competitors · Stakeholders · Eval Scores       │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 Project Structure
+
+```
+deal-intelligence-agent/
+├── backend/
+│   ├── main.py                    # FastAPI app, all routes
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── services/
+│       ├── memory_service.py      # Hindsight SDK integration
+│       ├── llm_service.py         # Groq completions + prompts
+│       ├── deal_service.py        # Deal CRUD + AI analysis
+│       ├── email_service.py       # SMTP email drafting
+│       ├── twilio_service.py      # SMS + Voice calls
+│       ├── roleplay_service.py    # 🆕 Sales Simulator sessions
+│       └── autopilot_service.py   # 🆕 Autonomous deal agent loop
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx                # Router + sidebar layout
+│   │   └── pages/
+│   │       ├── Dashboard.jsx      # Stats, heatmap, forecast
+│   │       ├── Chat.jsx           # Conversational agent
+│   │       ├── Deals.jsx          # Deal list + create
+│   │       ├── DealDetail.jsx     # Full deal view + actions
+│   │       ├── Intelligence.jsx   # Competitor + pattern analysis
+│   │       ├── Analytics.jsx      # Revenue charts
+│   │       ├── Roleplay.jsx       # 🆕 Sales Simulator UI
+│   │       └── Autopilot.jsx      # 🆕 Autonomous agent console
+│   ├── Dockerfile
+│   └── nginx.conf
+├── docker-compose.yml
+├── .env.example
+└── README.md
 ```
 
 ---
@@ -79,11 +177,11 @@ The application is architected around the **Retain $\rightarrow$ Recall $\righta
 git clone https://github.com/chaitanya07-ai/deal-intelligence-agent.git
 cd deal-intelligence-agent
 
-# Create environment configuration
 cp .env.example .env
 ```
 
-Open `.env` in your editor and configure your keys:
+Open `.env` and configure your keys:
+
 ```env
 GROQ_API_KEY=gsk_your_key_here
 HINDSIGHT_API_KEY=your_hindsight_key_here
@@ -96,33 +194,39 @@ HINDSIGHT_PIPELINE_ID=deal-intelligence
 docker-compose up --build
 ```
 
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Interactive Docs:** http://localhost:8000/docs
+| URL | Description |
+| :--- | :--- |
+| http://localhost:3000 | React frontend |
+| http://localhost:8000 | FastAPI backend |
+| http://localhost:8000/docs | Interactive API docs |
 
 ### 3. Seed Mock Data
-Once the application loads, click the **"Seed AI Deals"** button on the top-right of the Dashboard. The backend uses the Groq LLM to generate 6 highly realistic enterprise deals, complete with historical interactions, stakeholder maps, and competitor threats, and inserts them directly into Hindsight memory.
+
+Click **"Seed AI Deals"** on the Dashboard. The backend uses Groq to generate 6 realistic enterprise deals with full histories, stakeholder maps, objections, and competitor intel — all stored in Hindsight memory.
 
 ---
 
 ## 🔑 API Keys Setup
 
-### Groq (Inference Layer)
+### Groq (Inference Layer — Required)
 1. Go to the [Groq Console](https://console.groq.com).
 2. Create an API Key.
-3. Configure `GROQ_API_KEY=gsk_...` in your `.env`.
+3. Add to `.env`: `GROQ_API_KEY=gsk_...`
 
-### Hindsight (Memory Layer)
+### Hindsight (Memory Layer — Recommended)
 1. Register at [Hindsight by Vectorize](https://hindsight.vectorize.io/).
-2. Create a memory pipeline named `deal-intelligence`.
-3. Configure `HINDSIGHT_API_KEY` and `HINDSIGHT_PIPELINE_ID` in your `.env`.
-*Note: If no Hindsight API key is set, the system gracefully degrades to an in-memory fallback store (resets on server restart).*
+2. Create a pipeline named `deal-intelligence`.
+3. Add to `.env`:
+   ```env
+   HINDSIGHT_API_KEY=your_key
+   HINDSIGHT_PIPELINE_ID=deal-intelligence
+   ```
+> Without Hindsight, the system gracefully degrades to an in-process memory store that resets on restart.
 
-### Twilio (Communication Integrations - Optional)
-To enable the live SMS and calling features:
+### Twilio (SMS + Voice — Optional)
 1. Log in to your [Twilio Console](https://console.twilio.com).
-2. Obtain your Account SID, Auth Token, and a Twilio phone number.
-3. Configure the following variables in `.env`:
+2. Obtain Account SID, Auth Token, and a phone number.
+3. Add to `.env`:
    ```env
    TWILIO_ACCOUNT_SID=AC...
    TWILIO_AUTH_TOKEN=...
@@ -130,34 +234,23 @@ To enable the live SMS and calling features:
    ```
 
 ### SMTP Email (Optional)
-To enable real email drafting and delivery:
-1. Obtain an app-specific password if using Gmail.
-2. Add configurations to `.env`:
-   ```env
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_USER=your_email@gmail.com
-   SMTP_PASS=your_app_password
-   EMAIL_ENABLED=true
-   ```
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+EMAIL_ENABLED=true
+```
 
 ---
 
 ## 💻 Local Development (without Docker)
 
-If you prefer to run the backend and frontend locally outside of Docker:
-
 ### Backend (FastAPI)
 ```bash
 cd backend
 python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
-
+source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
@@ -166,41 +259,43 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev   # → http://localhost:3000
 ```
 
 ---
 
 ## 🎬 Demo Walkthrough
 
-Use this walk-through script to demonstrate the power of the **Hindsight memory layer**.
+### 1. Seed and Baseline
+- Open http://localhost:3000 and click **Seed AI Deals** on the Dashboard.
+- Open **Agent Chat** without a deal selected and ask: *"What objections did this prospect raise?"*
+- The agent gives generic advice — no memory yet.
 
-### 1. The Baseline (Stateless Chat)
-- Open http://localhost:3000
-- Click on **Agent Chat** in the sidebar. Do *not* select a deal context.
-- Ask the agent: *"What objections did this prospect raise?"*
-- **Result:** The agent replies with generic, boilerplate sales advice. It doesn't know the client, the history, or the deal state.
+### 2. Memory-Grounded Chat
+- Select a deal (e.g. *Initech Cloud Migration*) from the context dropdown.
+- Ask the same question again.
+- The agent now cites specific objections, stakeholder names, and dates pulled directly from Hindsight.
 
-### 2. Enabling Hindsight
-- Go to the **Dashboard** and click **Seed AI Deals**. Wait about 30 seconds for the seeding to finish.
-- Note the **Memory Active** indicator and the total memory count in the sidebar header incrementing.
+### 3. Deal Actions (Email + Briefing)
+- Go to **Deals** → click into a deal → open the **Actions** panel.
+- Click **Draft Email** → a personalized email grounded in Hindsight context.
+- Click **Generate Briefing** → full pre-call dossier with risk analysis and talking points.
 
-### 3. The Before/After Moment (Contextual Chat)
-- Return to **Agent Chat**. Select a deal context from the dropdown (e.g. `Initech Cloud Migration`).
-- Ask the exact same question: *"What objections did this prospect raise?"*
-- **Result:** The agent queries Hindsight using semantic search. It responds citing specific objections (e.g., European database shard migration timeline concerns) raised by specific stakeholders (e.g., Sarah Jenkins, VP of Operations) on exact dates.
+### 4. Sales Simulator
+- Open **Simulator** from the sidebar.
+- Select a deal and a stakeholder (e.g. *Sarah Jenkins, VP of Operations*).
+- Begin the roleplay session — the AI plays that stakeholder, raising the objections and pricing concerns stored in Hindsight.
+- End the session to receive a scored performance evaluation saved back to memory.
 
-### 4. Downstream Action Hub (Emails & Briefings)
-- Go to the **Deals** page and click into your selected deal to open the **Deal Detail** canvas.
-- Click the **Memory** tab. You will see the raw, indexed memories stored in Hindsight categorized by type.
-- Go to the **Actions** panel:
-  - Click **Draft Email**. The LLM queries Hindsight, retrieves relevant objections, and structures a highly personalized email.
-  - Click **Generate Briefing**. It builds a complete dossier containing risk analysis, competitor profiles, and talking points using Hindsight as its ground truth.
+### 5. Autopilot Agent
+- Open **Auto-Pilot** from the sidebar.
+- Click **Run Autopilot**.
+- Watch the live execution console stream each step: CRM scan → Hindsight recall → cross-deal pattern matching → Action Playbook generation.
+- Scroll through the generated Action Playbooks for every active deal.
 
-### 5. Aggregated Pattern Learning
-- Open the **Intelligence** page.
-- View the **Competitor Radar Chart**. The system aggregates competitor memories across all deals to compute live win rates.
-- Read the **Win/Loss Patterns**. The agent surfaces tactical objection-handling strategies that have historically led to closed-won deals.
+### 6. Intelligence & Analytics
+- Open **Intelligence** to view the Competitor Radar and Win/Loss patterns aggregated across all deals.
+- Open **Analytics** for the weighted revenue forecast and pipeline breakdown.
 
 ---
 
@@ -208,12 +303,13 @@ Use this walk-through script to demonstrate the power of the **Hindsight memory 
 
 | Criterion | How we address it |
 | :--- | :--- |
-| **Hindsight Integration** | Every action—chat inputs, emails, outbound SMS/calls, status updates—creates a persistent event stored in the Hindsight memory. All generation queries perform real-time semantic retrieval from Hindsight. |
-| **Technical Execution** | Highly responsive split-stack built with FastAPI, React, and Groq. Implements graceful degrading fallbacks for external APIs (SMTP, Twilio, Hindsight) to ensure zero setup blocks. |
-| **Real-world Value** | Solves context drift in B2B sales cycles. Reps no longer lose track of historical discussions across weeks of chat interactions. |
-| **User Experience** | Fluid glassmorphism interface styled in deep dark tones with active memory indicator metrics, interactive logs, and clean data visualization panels. |
+| **Hindsight Integration** | Every action — chat, email, SMS/voice, roleplay evaluation, autopilot recall — creates or queries Hindsight memory. The Retain-Recall Loop is the backbone of every feature. |
+| **Technical Execution** | FastAPI + React + Groq with graceful degrading fallbacks for all external APIs. The Simulator and Autopilot are both first-class backend services with clean async interfaces. |
+| **Real-world Value** | Solves context drift in long B2B sales cycles. The Simulator builds rep skill before high-stakes calls; the Autopilot surfaces unresolved blockers before they kill deals. |
+| **User Experience** | Glassmorphism dark UI, real-time autopilot execution logs, live roleplay chat, memory counter, and clean data visualization throughout. |
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License.
+
+MIT — build freely, sell intelligently.
