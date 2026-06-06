@@ -310,6 +310,8 @@ npm run dev   # → http://localhost:3000
 
 ---
 
+Live on: https://deal-intelligence-agent-1.onrender.com
+
 ## 📄 License
 
 MIT — build freely, sell intelligently.
